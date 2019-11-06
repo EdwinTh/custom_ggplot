@@ -29,7 +29,7 @@ ggbiplot <- function(pca_object,
   check_if_ggplot_is_loaded()
   
   pc_loadings <- get_loadings(pca_object, components)
-
+  
   cols <- colnames(pc_loadings)
   
   return_plot <- ggplot(pc_loadings) +
