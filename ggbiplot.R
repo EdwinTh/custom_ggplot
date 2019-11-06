@@ -43,7 +43,7 @@ ggbiplot <- function(pca_object,
   
   if (!add_cases) return(return_plot)
   
-  cases <- extract_and_scale_cases(pca_object, pc_loadings)
+  cases <- extract_and_scale_cases(pca_object, components, pc_loadings)
   
   return_plot + geom_text(data = cases, 
                           aes_string(x = cols[1], y = cols[2], label = "names"),
@@ -73,7 +73,9 @@ get_loadings <- function(pca_object,
   rotations
 }
 
-extract_and_scale_cases <- function(pca_object, pc_loadings) {
+extract_and_scale_cases <- function(pca_object, 
+                                    components,
+                                    pc_loadings) {
   cases <- as.data.frame(pca_object$x[,components])
   
   # the cases need to be scaled to the PC scales 
