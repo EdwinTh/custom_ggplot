@@ -7,18 +7,22 @@
 #'   from the `stats`` package.
 #' @param components Numeric of length 2. Which principal components 
 #'   to plot, defaults to the first two.
+#' @param add_variables Logical. Should the the variables be 
+#'   added to the plot? Defaults to TRUE.
 #' @param add_cases Logical. Should the cases (rows in the data 
-#'   on which the pca was performed) be added to the plot alongside 
-#'   the variables? Defaults to TRUE.
+#'   on which the pca was performed) be added to the plot? 
+#'   Defaults to TRUE.
 #' @return A `ggplot` object showing the biplot.
 #' @examples 
 #' pc_mtcars <- prcomp(mtcars)
 #' ggbiplot(pc_mtcars)
 #' ggbiplot(pc_mtcars, add_cases = FALSE)
+#' ggbiplot(pc_mtcars, add_variables = FALSE)
 #' ggbiplot(pc_mtcars, components = c(3, 4))
 ggbiplot <- function(pca_object, 
-                     components = c(1, 2),
-                     add_cases  = TRUE){
+                     components    = c(1, 2),
+                     add_variables = TRUE,
+                     add_cases     = TRUE){
   
   stopifnot(inherits(pca_object, "prcomp"),
             is.numeric(components),
@@ -35,23 +39,34 @@ ggbiplot <- function(pca_object,
   vars_expl <- get_variance_explained(pca_object, components)
   
   return_plot <- ggplot(pc_loadings) +
-    geom_text(aes_string(x = cols[1], y = cols[2], label = "variables")) +
-    geom_segment(aes_string(x = 'origin', 
-                            y = 'origin', 
-                            xend = cols[1], 
-                            yend = cols[2]),
-                 arrow = arrow(length = unit(0.5, "cm")), 
-                 color = 'red') +
     xlab(paste0(cols[1], " (", vars_expl[1], "% of variance)")) +
     ylab(paste0(cols[2], " (", vars_expl[2], "% of variance)"))
   
-  if (!add_cases) return(return_plot)
+  if (add_variables) {
+    return_plot <- 
+      return_plot +
+      geom_text(aes_string(x = cols[1], y = cols[2], label = "variables")) +
+      geom_segment(aes_string(x = 'origin', 
+                              y = 'origin', 
+                              xend = cols[1], 
+                              yend = cols[2]),
+                   arrow = arrow(length = unit(0.5, "cm")), 
+                   color = 'red') +
+      xlab(paste0(cols[1], " (", vars_expl[1], "% of variance)")) +
+      ylab(paste0(cols[2], " (", vars_expl[2], "% of variance)"))
+  }
+
   
-  cases <- extract_and_scale_cases(pca_object, components, pc_loadings)
-  
-  return_plot + geom_text(data = cases, 
-                          aes_string(x = cols[1], y = cols[2], label = "names"),
-                          color = "blue")
+  if (add_cases) {
+    cases <- extract_and_scale_cases(pca_object, components, pc_loadings)
+    
+    return_plot <- 
+      return_plot + 
+      geom_text(data = cases, 
+                aes_string(x = cols[1], y = cols[2], label = "names"),
+                color = "blue")
+  }
+  return_plot
 }
 
 check_valid_components <- function(pca_object, 
@@ -96,4 +111,3 @@ extract_and_scale_cases <- function(pca_object,
   cases$names <- rownames(pca_object$x[,components])
   cases
 }
-
