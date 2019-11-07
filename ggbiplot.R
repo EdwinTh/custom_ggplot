@@ -32,6 +32,8 @@ ggbiplot <- function(pca_object,
   
   cols <- colnames(pc_loadings)
   
+  vars_expl <- get_variance_explained(pca_object, components)
+  
   return_plot <- ggplot(pc_loadings) +
     geom_text(aes_string(x = cols[1], y = cols[2], label = "variables")) +
     geom_segment(aes_string(x = 'origin', 
@@ -39,7 +41,9 @@ ggbiplot <- function(pca_object,
                             xend = cols[1], 
                             yend = cols[2]),
                  arrow = arrow(length = unit(0.5, "cm")), 
-                 color = 'red')
+                 color = 'red') +
+    xlab(paste0(cols[1], " (", vars_expl[1], "% of variance)")) +
+    ylab(paste0(cols[2], " (", vars_expl[2], "% of variance)"))
   
   if (!add_cases) return(return_plot)
   
@@ -73,6 +77,12 @@ get_loadings <- function(pca_object,
   rotations
 }
 
+get_variance_explained <- function(pca_object,
+                                  components) {
+  variances_expl <- pca_object$sdev / sum(pca_object$sdev) * 100
+  round(variances_expl[components], 2)
+}
+
 extract_and_scale_cases <- function(pca_object, 
                                     components,
                                     pc_loadings) {
@@ -86,3 +96,4 @@ extract_and_scale_cases <- function(pca_object,
   cases$names <- rownames(pca_object$x[,components])
   cases
 }
+
